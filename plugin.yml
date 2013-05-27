@@ -1,0 +1,4 @@
+name: NomadicGameplay
+main: fr.tobast.bukkit.nomadicgameplay.NomadicGameplay
+version: 0.9
+author: Tobast
