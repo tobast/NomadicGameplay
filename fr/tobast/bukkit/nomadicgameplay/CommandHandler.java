@@ -33,23 +33,22 @@
 
 package fr.tobast.bukkit.nomadicgameplay;
 
-import org.bukkit.java.JavaPlugin;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 
-import fr.tobast.bukkit.nomadicgameplay.CommandHandler;
+import fr.tobast.bukkit.nomadicgameplay.NomadicGameplay;
 
-public class NomadicGameplay extends JavaPlugin {
-	private CommandHandler cmdHandler = new CommandHandler(this);
+public class CommandHandler {
+	private NomadicGameplay plugin;
 
-	public void onEnable() {
+	public CommandHandler(NomadicGameplay plugin) {
+		this.plugin = plugin;
 	}
 
-	@Override
 	public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-		return cmdHandler.processCmd(sender, command, label, args);
+		if(label.equals("setcamp")) {
+			// Plant camp here.
+		}
 	}
-
-//	public void onDisable {}
 }
 
