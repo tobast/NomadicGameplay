@@ -1,3 +1,4 @@
+
 /*
  * PROGRAM:
  *   NomadicGameplay - bukkit plugin
@@ -29,4 +30,26 @@
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see http://www.gnu.org/licenses/gpl.txt.
 */
+
+package fr.tobast.bukkit.nomadicgameplay;
+
+import org.bukkit.java.JavaPlugin;
+import org.bukkit.command.Command;
+import org.bukkit.command.CommandSender;
+
+import fr.tobast.bukkit.nomadicgameplay.CommandHandler;
+
+public class NomadicGameplay extends JavaPlugin {
+	CommandHandler cmdHandler = new CommandHandler(this);
+
+	public void onEnable() {
+	}
+
+	@Override
+	public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
+		return cmdHandler.processCmd(sender, command, label, args);
+	}
+
+//	public void onDisable {}
+}
 
