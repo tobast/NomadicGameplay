@@ -49,6 +49,8 @@ public class CommandHandler {
 		if(label.equals("setcamp")) {
 			// Plant camp here.
 		}
+
+		return false;
 	}
 }
 
