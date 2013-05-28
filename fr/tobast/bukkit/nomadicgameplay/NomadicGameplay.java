@@ -45,6 +45,7 @@ import java.util.ArrayList;
 import java.lang.IndexOutOfBoundsException;
 
 import fr.tobast.bukkit.nomadicgameplay.CommandHandler;
+import fr.tobast.bukkit.nomadicgameplay.EventListener;
 
 public class NomadicGameplay extends JavaPlugin {
 	private CommandHandler cmdHandler = new CommandHandler(this);
@@ -68,7 +69,7 @@ public class NomadicGameplay extends JavaPlugin {
 		if(id == null) { // Insert the new player
 			id=nextPlayerId;
 			playersIds.put(name, id);
-			mustTeleportPlayer.add(false);
+			mustTeleportPlayer.add(true); // new player
 			nextPlayerId++;
 		}
 
@@ -100,6 +101,8 @@ public class NomadicGameplay extends JavaPlugin {
 
 // ==== OVERLOADED BUKKIT API FUNCTIONS ====
 	public void onEnable() {
+		initVars();
+		getServer().getPluginManager().registerEvents(new EventListener(this), this);
 	}
 
 	@Override
@@ -111,6 +114,10 @@ public class NomadicGameplay extends JavaPlugin {
 //	public void onDisable {}
 
 // ==== MISC FUNCTIONS ====
+	private void initVars() {
+		campLocation = getServer().getWorld("world").getSpawnLocation(); // TODO config world
+	}
+
 	private boolean isValidTeleportLocation(final Location loc) {
 		return (loc.getBlock().getType() == Material.AIR &&
 		   loc.getBlock().getRelative(BlockFace.UP).getType() == Material.AIR);

@@ -63,17 +63,11 @@ public class EventListener implements Listener {
 			event.getPlayer().teleport(plugin.getCampTeleportLocation(),
 					TeleportCause.PLUGIN);
 		}
-		
-		event.setJoinMessage(event.getPlayer().getDisplayName()+" joined the "+
-			"caravan.");
 	}
 
 	@EventHandler(priority = EventPriority.MONITOR)
 	void onPlayerQuitEvent(PlayerQuitEvent event) {
-		event.setQuitMessage(event.getPlayer().getDisplayName()+" left the "+
-			"caravan.");
-
-		if(plugin.getServer().getOnlinePlayers().length == 0) { // No one left
+		if(plugin.getServer().getOnlinePlayers().length == 1) { // No one left
 			// Save game's state for further restore
 			plugin.setLastPauseTime(event.getPlayer().getLocation().getWorld().getFullTime());
 		}
