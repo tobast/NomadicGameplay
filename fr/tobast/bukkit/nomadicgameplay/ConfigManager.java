@@ -46,6 +46,8 @@ public class ConfigManager {
 	public String mainWorld;
 	public int minTravelDistance;
 	public int daysBeforeInvasion;
+	public int setCampDist;
+	public double setCampProportion;
 
 	ConfigManager(NomadicGameplay plugin) {
 		this.plugin = plugin;
@@ -61,6 +63,10 @@ public class ConfigManager {
 		// roam.*
 		conf.addDefault("roam.minTravelDistance", 500);
 		conf.addDefault("roam.daysBeforeInvasion", 3);
+
+		// camp.*
+		conf.addDefault("camp.setCampDist", 5);
+		conf.addDefault("camp.setCampProportion", 0.5);
 
 		// gamestate.*
 		conf.addDefault("gamestate.lastPauseTime", 0);
@@ -81,6 +87,9 @@ public class ConfigManager {
 
 		minTravelDistance  = conf.getInt("roam.minTravelDistance");
 		daysBeforeInvasion = conf.getInt("roam.daysBeforeInvasion");
+
+		setCampDist = conf.getInt("camp.setCampDist");
+		setCampProportion = conf.getDouble("camp.setCampProportion");
 
 		plugin.setLastPauseTime(conf.getLong("gamestate.lastPauseTime"));
 		Location campLoc = new Location(

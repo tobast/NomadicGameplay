@@ -53,7 +53,7 @@ import fr.tobast.bukkit.nomadicgameplay.ConfigManager;
 
 public class NomadicGameplay extends JavaPlugin {
 	private CommandHandler cmdHandler = new CommandHandler(this);
-	private ConfigManager cfgManager = new ConfigManager(this);
+	private ConfigManager cfgManager;
 	private long lastPauseTime = 0; 
 	private HashMap<String, Integer> playersIds = new HashMap<String, Integer>();
 	private int nextPlayerId = 0;
@@ -63,6 +63,10 @@ public class NomadicGameplay extends JavaPlugin {
 	private long lastSetCampTime = 0;
 
 // ==== SETTERS/GETTERS ====
+	final ConfigManager getCfgManager() {
+		return cfgManager;
+	}
+
 	final long getLastPauseTime() {
 		return lastPauseTime;
 	}
@@ -145,6 +149,7 @@ public class NomadicGameplay extends JavaPlugin {
 
 // ==== OVERLOADED BUKKIT API FUNCTIONS ====
 	public void onEnable() {
+		cfgManager = new ConfigManager(this);
 		cfgManager.loadConfig();
 		initVars();
 		getServer().getPluginManager().registerEvents(new EventListener(this), this);

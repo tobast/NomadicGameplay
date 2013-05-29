@@ -29,12 +29,16 @@
  *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see http://www.gnu.org/licenses/gpl.txt.
-*/
+ */
 
 package fr.tobast.bukkit.nomadicgameplay;
 
+import org.bukkit.block.BlockFace;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Player;
+import org.bukkit.Location;
+import org.bukkit.Material;
 
 import fr.tobast.bukkit.nomadicgameplay.NomadicGameplay;
 
@@ -47,10 +51,72 @@ public class CommandHandler {
 
 	public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
 		if(label.equals("setcamp")) {
-			// Plant camp here.
+			if(onSetCamp(sender))
+				return true;
+		}
+		return false;
+	}
+
+	private boolean onSetCamp(CommandSender sender) {
+		if(!(sender instanceof Player)) {
+			sender.sendMessage("You must be a player to perform this command!");
+			return false;
 		}
 
-		return false;
+		Player pSender = (Player)sender;
+		Location pLoc = pSender.getLocation();
+
+		// On a solid block
+		Material supportMaterial = pLoc.getBlock().getRelative(BlockFace.DOWN).getType();
+		if(supportMaterial == Material.AIR || supportMaterial == Material.WATER) { // Non-solid
+			sender.sendMessage("You must be standing on a solid block to settle a camp.");
+			return true;
+		}
+
+		// At least n blocks away from the prev. camp
+		if(plugin.distToCamp(pLoc) < plugin.getCfgManager().minTravelDistance) {
+			sender.sendMessage("You're only "+plugin.distToCamp(pLoc)+
+					" away from your former camp. You must be at least "+
+					plugin.getCfgManager().minTravelDistance+" meters "+
+					"away to settle a new camp! The action was cancelled.");
+			return true; // Player does not want help
+		}
+
+		// Right proportion of players around the camp setter
+		int nbNear=0;
+		for(Player pl : plugin.getServer().getOnlinePlayers()) {
+			if(manhattan_2d(pl.getLocation(), pLoc) <= plugin.getCfgManager().setCampDist) {
+				nbNear++;
+			}
+		}
+		if(((double)nbNear) / ((double)plugin.getServer().getOnlinePlayers().length) <
+				plugin.getCfgManager().setCampProportion) {
+			sender.sendMessage("At least "+plugin.getCfgManager().setCampProportion *100+
+					"% of the players shall be in a "+plugin.getCfgManager().setCampDist+
+					" range from you to set camp. The action was cancelled.");
+			return true;
+		}
+
+		// All the required conditions are met. Let's set camp here!
+		plugin.setCamp(pLoc);
+
+		// also update mustTeleport status of offline players to true,
+		// online players to false.
+		for(String plName : plugin.getPlayersNames()) {
+			plugin.setMustTeleportPlayer(plugin.getPlayerId(plName), isOnline(plName));
+		}
+
+		plugin.getServer().broadcastMessage(pSender.getDisplayName()+" settled a new camp!");
+		return true;
+	}
+
+	private final int manhattan_2d(final Location l1, final Location l2) {
+		return Math.abs(l1.getBlockX() - l2.getBlockX()) +
+			Math.abs(l1.getBlockZ() - l2.getBlockZ());
+	}
+
+	private boolean isOnline(String player) {
+		return (plugin.getServer().getPlayerExact(player) != null);
 	}
 }
 
