@@ -48,12 +48,14 @@ import java.util.HashMap;
 import java.util.ArrayList;
 import java.lang.IndexOutOfBoundsException;
 
+import fr.tobast.bukkit.nomadicgameplay.BlocksHandler;
 import fr.tobast.bukkit.nomadicgameplay.CommandHandler;
-import fr.tobast.bukkit.nomadicgameplay.EventListener;
 import fr.tobast.bukkit.nomadicgameplay.ConfigManager;
+import fr.tobast.bukkit.nomadicgameplay.EventListener;
 import fr.tobast.bukkit.nomadicgameplay.InvasionHandler;
 
 public class NomadicGameplay extends JavaPlugin {
+	private BlocksHandler blocksHandler = new BlocksHandler(this);
 	private CommandHandler cmdHandler = new CommandHandler(this);
 	private ConfigManager cfgManager;
 	private InvasionHandler invasionHandler;
@@ -65,6 +67,9 @@ public class NomadicGameplay extends JavaPlugin {
 	private long lastSetCampTime = 0;
 
 // ==== SETTERS/GETTERS ====
+	final BlocksHandler getBlocksHandler() {
+		return blocksHandler;
+	}
 	final ConfigManager getCfgManager() {
 		return cfgManager;
 	}

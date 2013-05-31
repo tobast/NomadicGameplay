@@ -106,6 +106,8 @@ public class CommandHandler {
 			return true;
 		}
 
+		plugin.getBlocksHandler().destroyUnplaceableBlocks(
+				plugin.getCampLocation(), plugin.getCfgManager().campRadius);
 		// All the required conditions are met. Let's set camp here!
 		plugin.setCamp(pLoc);
 
@@ -116,7 +118,9 @@ public class CommandHandler {
 		}
 
 		plugin.getServer().broadcastMessage(ChatColor.BLUE+
-				pSender.getDisplayName()+" settled a new camp!");
+			pSender.getDisplayName()+" settled a new camp!");
+
+
 		return true;
 	}
 
