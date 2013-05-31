@@ -127,6 +127,10 @@ public class NomadicGameplay extends JavaPlugin {
 		return lastSetCampTime;
 	}
 
+	final World getMainWorld() {
+		return mainWorld;
+	}
+
 // ==== OVERLOADED BUKKIT API FUNCTIONS ====
 	public void onEnable() {
 		cfgManager = new ConfigManager(this); // loads config

@@ -34,6 +34,7 @@
 package fr.tobast.bukkit.nomadicgameplay;
 
 import org.bukkit.block.BlockFace;
+import org.bukkit.ChatColor;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.LivingEntity;
@@ -52,7 +53,7 @@ import fr.tobast.bukkit.nomadicgameplay.NomadicGameplay;
 
 public class InvasionHandler {
 	private NomadicGameplay plugin;
-	private Random randGen;
+	private Random randGen = new Random();
 	private TreeSet<Integer> invasionEntities = new TreeSet<Integer>();
 	private HashMap<String,Boolean> isPlayerStalked =
 		new	HashMap<String,Boolean>();
@@ -61,10 +62,18 @@ public class InvasionHandler {
 	private ArrayList<LivingEntity> toKillEntities = new ArrayList<LivingEntity>();
 	private boolean isInvading = false;
 	private WeatherRegulator weatherReg;
+	private InvasionRepeatCheck repeatChecker;
 
 	InvasionHandler(NomadicGameplay plugin) {
 		this.plugin = plugin;
-		weatherReg = new WeatherRegulator(plugin.getCampLocation().getWorld());
+		weatherReg = new WeatherRegulator(plugin.getCampLocation().getWorld(), this);
+		weatherReg.runTaskTimer(plugin, 0, 9000);
+		repeatChecker = new InvasionRepeatCheck(plugin);
+		repeatChecker.runTaskTimer(plugin, 0, 50);
+	}
+
+	final boolean isInvading() {
+		return isInvading;
 	}
 	
 	void triggerInvasion() {
@@ -79,33 +88,36 @@ public class InvasionHandler {
 		if(isInvading)
 			return;
 
+		plugin.getServer().broadcastMessage(ChatColor.DARK_PURPLE+"We're under attack!");
+
 		isInvading = true;
 
-		weatherReg.runTaskTimer(plugin, 0, 9000);
+		weatherReg.forceWeather();
 
 		int campRadius = plugin.getCfgManager().campRadius;
 		int nbMobs = (int)Math.ceil(plugin.getCfgManager().mobDensity *
-				((double)(2*campRadius + 1)));
+				((double)Math.pow(2*campRadius + 1,2)));
 
 		for(int curMob = 0; curMob < nbMobs; curMob++) {
 			invasionEntities.add(spawnMobAround(campLoc, campRadius));
 		}
 
-		int nbStalkers = plugin.getCfgManager().nbMobAroundPlayer;
 		for(Player player : plugin.getServer().getOnlinePlayers()) {
 			if(inCamp(player.getLocation())) {
-				// per-player spawn
-				for(int curMob=0; curMob < nbStalkers; curMob++) {
-
-					mobToStalkedPlayer.put(spawnMobAround(player.getLocation(),
-							plugin.getCfgManager().stalkArea), player.getName());
-				}
-				isPlayerStalked.put(player.getName(), true);
-			}
-			else {
+				stalkPlayer(player);
+			} else {
 				isPlayerStalked.put(player.getName(), false);
 			}
 		}
+	}
+
+	void stalkPlayer(Player player) {
+		int nbStalkers = plugin.getCfgManager().nbMobAroundPlayer;
+		for(int curMob=0; curMob < nbStalkers; curMob++) {
+			mobToStalkedPlayer.put(spawnMobAround(player.getLocation(),
+					plugin.getCfgManager().stalkArea), player.getName());
+		}
+		isPlayerStalked.put(player.getName(), true);
 	}
 
 	void entityDied(int id, Location deathLoc) {
@@ -118,6 +130,7 @@ public class InvasionHandler {
 		}
 		else {
 			String stalkedPl = mobToStalkedPlayer.get(id);
+			mobToStalkedPlayer.remove(id);
 			if(stalkedPl != null) {
 				Location plLoc =
 					plugin.getServer().getPlayerExact(stalkedPl).getLocation();
@@ -127,7 +140,7 @@ public class InvasionHandler {
 						plugin.getCfgManager().stalkArea), stalkedPl);
 				}
 				else {
-					mobToStalkedPlayer.remove(stalkedPl);
+					isPlayerStalked.put(stalkedPl, false);
 				}
 			}
 		}
@@ -135,8 +148,7 @@ public class InvasionHandler {
 
 	void endInvasion() {
 		isInvading = false;
-		weatherReg.cancel();
-		plugin.getCampLocation().getWorld().setStorm(false);
+		weatherReg.forceWeather();
 
 		for(LivingEntity entity : toKillEntities) {
 			if(entity == null) //unloaded
@@ -150,16 +162,24 @@ public class InvasionHandler {
 		mobToStalkedPlayer.clear();
 	}
 
-	private int spawnMobAround(Location loc, int zoneRadius) {
-			int locX = randGen.nextInt(2*zoneRadius+1) - zoneRadius;
-			int locZ = randGen.nextInt(2*zoneRadius+1) - zoneRadius;
-			Location spawnLoc = new Location(loc.getWorld(), locX, loc.getY(), locZ);
-			spawnLoc = nearestAir(spawnLoc);
+	final boolean isStalked(String plName) {
+		Boolean out = isPlayerStalked.get(plName);
+		if(out == null)
+			return false;
+		return out;
+	}
 
-			LivingEntity mob = ((LivingEntity)loc.getWorld().spawnEntity(
-						spawnLoc, EntityType.ZOMBIE));
-			toKillEntities.add(mob);
-			return mob.getEntityId();
+	private int spawnMobAround(Location loc, int zoneRadius) {
+		int locX = loc.getBlockX() + randGen.nextInt(2*zoneRadius+1) - zoneRadius;
+		int locZ = loc.getBlockZ() + randGen.nextInt(2*zoneRadius+1) - zoneRadius;
+		Location spawnLoc = new Location(loc.getWorld(), locX, loc.getY(), locZ);
+		spawnLoc = nearestAir(spawnLoc);
+
+		LivingEntity mob = ((LivingEntity)loc.getWorld().spawnEntity(
+					spawnLoc, EntityType.ZOMBIE));
+		toKillEntities.add(mob);
+
+		return mob.getEntityId();
 	}
 
 	private Location nearestAir(final Location loc) {
@@ -189,7 +209,7 @@ public class InvasionHandler {
 			(loc.getBlock().getRelative(BlockFace.UP).getType() == Material.AIR);
 	}
 
-	private boolean inCamp(final Location loc) {
+	public boolean inCamp(final Location loc) {
 		Location campLoc = plugin.getCampLocation();
 		int campRad = plugin.getCfgManager().campRadius;
 
@@ -201,15 +221,81 @@ public class InvasionHandler {
 
 	private class WeatherRegulator extends BukkitRunnable {
 		private World handledWorld;
+		private InvasionHandler handler;
 
-		WeatherRegulator(World handledWorld) {
+		WeatherRegulator(World handledWorld, InvasionHandler handler) {
 			this.handledWorld = handledWorld;
+			this.handler = handler;
 		}
 
 		@Override
 		public void run() {
+			if(handler.isInvading())
+				invasionWeather();
+		}
+
+		public void forceWeather() {
+			if(handler.isInvading())
+				invasionWeather();
+			else
+				normalWeather();
+		}
+
+		private void invasionWeather() {
 			handledWorld.setStorm(true);
+			handledWorld.setThundering(true);
 			handledWorld.setWeatherDuration(10000);
+			handledWorld.setThunderDuration(10000);
+		}
+		private void normalWeather() {
+			handledWorld.setThundering(false);
+			handledWorld.setStorm(false);
+		}
+	}
+
+	private class InvasionRepeatCheck extends BukkitRunnable {
+		private NomadicGameplay plugin;
+
+		InvasionRepeatCheck(NomadicGameplay plugin) {
+			this.plugin = plugin;
+		}
+
+		@Override
+		public void run() {
+			boolean invaded = plugin.getInvasionHandler().isInvading();
+			if(!invaded) {
+				// Check if we are now invaded.
+				if(plugin.getCfgManager().daysBeforeInvasion * 24000 +
+						plugin.getLastSetCampTime() < 
+						plugin.getMainWorld().getFullTime())
+				{
+					plugin.getInvasionHandler().triggerInvasion();
+					return;
+				}
+			} else {
+				// Check if invasion ended
+				if(plugin.getCfgManager().daysBeforeInvasion * 24000 +
+						plugin.getLastSetCampTime() >=
+						plugin.getMainWorld().getFullTime())
+				{
+					plugin.getInvasionHandler().endInvasion();
+					return;
+				}
+
+				// If not,
+				// Check if a player entered the camp (let's stick zombies)
+				ckeckPlayersInCamp();
+			}
+		}
+
+		void ckeckPlayersInCamp() {
+			for(Player pl : plugin.getServer().getOnlinePlayers()) {
+				if(plugin.getInvasionHandler().inCamp(pl.getLocation()) &&
+						!plugin.getInvasionHandler().isStalked(pl.getName()))
+				{
+					plugin.getInvasionHandler().stalkPlayer(pl);
+				}
+			}
 		}
 	}
 }
