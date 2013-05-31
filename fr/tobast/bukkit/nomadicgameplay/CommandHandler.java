@@ -34,6 +34,7 @@
 package fr.tobast.bukkit.nomadicgameplay;
 
 import org.bukkit.block.BlockFace;
+import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -64,7 +65,8 @@ public class CommandHandler {
 
 	private boolean onSetCamp(CommandSender sender) {
 		if(!(sender instanceof Player)) {
-			sender.sendMessage("You must be a player to perform this command!");
+			sender.sendMessage(ChatColor.RED+"You must be a player to "+
+					"perform this command!");
 			return false;
 		}
 
@@ -74,13 +76,14 @@ public class CommandHandler {
 		// On a solid block
 		Material supportMaterial = pLoc.getBlock().getRelative(BlockFace.DOWN).getType();
 		if(supportMaterial == Material.AIR || supportMaterial == Material.WATER) { // Non-solid
-			sender.sendMessage("You must be standing on a solid block to settle a camp.");
+			sender.sendMessage(ChatColor.RED+"You must be standing on a solid "+
+					"block to settle a camp.");
 			return true;
 		}
 
 		// At least n blocks away from the prev. camp
 		if(plugin.distToCamp(pLoc) < plugin.getCfgManager().minTravelDistance) {
-			sender.sendMessage("You're only "+plugin.distToCamp(pLoc)+
+			sender.sendMessage(ChatColor.RED+"You're only "+plugin.distToCamp(pLoc)+
 					" away from your former camp. You must be at least "+
 					plugin.getCfgManager().minTravelDistance+" meters "+
 					"away to settle a new camp! The action was cancelled.");
@@ -96,7 +99,8 @@ public class CommandHandler {
 		}
 		if(((double)nbNear) / ((double)plugin.getServer().getOnlinePlayers().length) <
 				plugin.getCfgManager().setCampProportion) {
-			sender.sendMessage("At least "+plugin.getCfgManager().setCampProportion *100+
+			sender.sendMessage(ChatColor.RED+"At least "+
+					plugin.getCfgManager().setCampProportion *100+
 					"% of the players shall be in a "+plugin.getCfgManager().setCampDist+
 					" range from you to set camp. The action was cancelled.");
 			return true;
@@ -111,7 +115,8 @@ public class CommandHandler {
 			plugin.setMustTeleportPlayer(plName, !isOnline(plName));
 		}
 
-		plugin.getServer().broadcastMessage(pSender.getDisplayName()+" settled a new camp!");
+		plugin.getServer().broadcastMessage(ChatColor.BLUE+
+				pSender.getDisplayName()+" settled a new camp!");
 		return true;
 	}
 
@@ -121,11 +126,11 @@ public class CommandHandler {
 
 		if(args[0].equals("reload")) {
 			plugin.getCfgManager().reloadConfig();
-			sender.sendMessage("Nomadic reload complete.");
+			sender.sendMessage(ChatColor.GREEN+"Nomadic reload complete.");
 			return true;
 		} else if(args[0].equals("save")) {
 			plugin.getCfgManager().saveState();
-			sender.sendMessage("Nomadic save complete.");
+			sender.sendMessage(ChatColor.GREEN+"Nomadic save complete.");
 			return true;
 		}
 
