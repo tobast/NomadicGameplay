@@ -36,9 +36,11 @@ package fr.tobast.bukkit.nomadicgameplay;
 import org.bukkit.event.Listener;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
+import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerTeleportEvent.TeleportCause;
+import org.bukkit.Location;
 import org.bukkit.World;
 
 import fr.tobast.bukkit.nomadicgameplay.NomadicGameplay;
@@ -50,6 +52,13 @@ public class EventListener implements Listener {
 		this.plugin = plugin;
 	}
 
+	@EventHandler(priority = EventPriority.MONITOR)
+	void onEntityDeathEvent(EntityDeathEvent event) {
+		int entityId = event.getEntity().getEntityId();
+		Location deathLoc = event.getEntity().getLocation();
+		plugin.getInvasionHandler().entityDied(entityId, deathLoc);
+	}
+
 	@EventHandler(priority = EventPriority.HIGHEST) // Teleportation
 	void onPlayerJoinEvent(PlayerJoinEvent event) {
 		if(plugin.getServer().getOnlinePlayers().length == 1) { // Only player
@@ -57,9 +66,9 @@ public class EventListener implements Listener {
 				world.setFullTime(plugin.getLastPauseTime());
 		}
 
-		int playerId = plugin.getPlayerId(event.getPlayer().getName());
-		if(plugin.getMustTeleportPlayer(playerId) == true) {
-			plugin.setMustTeleportPlayer(playerId, false);
+		String player = event.getPlayer().getName();
+		if(plugin.getMustTeleportPlayer(player) == true) {
+			plugin.setMustTeleportPlayer(player, false);
 			event.getPlayer().teleport(plugin.getCampTeleportLocation(),
 					TeleportCause.PLUGIN);
 		}

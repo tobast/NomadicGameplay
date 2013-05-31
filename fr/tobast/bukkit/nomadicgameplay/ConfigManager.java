@@ -48,6 +48,10 @@ public class ConfigManager {
 	public int daysBeforeInvasion;
 	public int setCampDist;
 	public double setCampProportion;
+	public int campRadius;
+	public double mobDensity;
+	public int nbMobAroundPlayer;
+	public int stalkArea;
 
 	ConfigManager(NomadicGameplay plugin) {
 		this.plugin = plugin;
@@ -67,6 +71,12 @@ public class ConfigManager {
 		// camp.*
 		conf.addDefault("camp.setCampDist", 5);
 		conf.addDefault("camp.setCampProportion", 0.5);
+		conf.addDefault("camp.radius", 10);
+
+		// invasion.*
+		conf.addDefault("invasion.mobDensity", 0.05);
+		conf.addDefault("invasion.nbMobAroundPlayer", 3);
+		conf.addDefault("invasion.stalkArea", 3);
 
 		// gamestate.*
 		conf.addDefault("gamestate.lastPauseTime", 0);
@@ -75,22 +85,25 @@ public class ConfigManager {
 		conf.addDefault("gamestate.campLocation.z", -1);
 		conf.addDefault("gamestate.campLocation.world", "world");
 		conf.addDefault("gamestate.lastSetCampTime", 0);
-		conf.createSection("gamestate.playersids"); // Empty section @default
-		conf.addDefault("gamestate.mustTeleport", java.util.Collections.emptyList());
+		if(!conf.isConfigurationSection("gamestate.players"))
+			conf.createSection("gamestate.players"); // Empty section @default
 
 		conf.options().copyDefaults(true);
 		plugin.saveConfig();
 	}
 
 	void loadConfig() {
-		mainWorld = conf.getString("map.mainworld");
+		loadOptions();
+		loadGamestate();
+	}
 
-		minTravelDistance  = conf.getInt("roam.minTravelDistance");
-		daysBeforeInvasion = conf.getInt("roam.daysBeforeInvasion");
+	void reloadConfig() {
+		plugin.reloadConfig();
+		conf = plugin.getConfig();
+		loadOptions();
+	}
 
-		setCampDist = conf.getInt("camp.setCampDist");
-		setCampProportion = conf.getDouble("camp.setCampProportion");
-
+	void loadGamestate() {
 		plugin.setLastPauseTime(conf.getLong("gamestate.lastPauseTime"));
 		Location campLoc = new Location(
 				plugin.getServer().getWorld(
@@ -100,22 +113,36 @@ public class ConfigManager {
 				conf.getInt("gamestate.campLocation.z"));
 		plugin.setCampInit(campLoc, conf.getInt("gamestate.lastSetCampTime"));
 
-		int nextPlayerId=0;
-		for(String player : conf.getConfigurationSection("gamestate.playersids").getKeys(false)) {
-			int id = conf.getInt("gamestate.playersids."+player);
-			plugin.setPlayerId(player, id);
-			if(id >= nextPlayerId)
-				nextPlayerId = id+1;
+		ConfigurationSection playersSect = 
+			conf.getConfigurationSection("gamestate.players");
+		for(String player : playersSect.getKeys(false)) {
+			plugin.setMustTeleportPlayer(player, conf.getBoolean(
+						"gamestate.players."+player+".mustTeleport"));
 		}
-		
-		plugin.setMustTeleport(conf.getBooleanList("gamestate.mustTeleport"));
+	}
+
+	void loadOptions() {
+		mainWorld = conf.getString("map.mainworld");
+
+		minTravelDistance  = conf.getInt("roam.minTravelDistance");
+		daysBeforeInvasion = conf.getInt("roam.daysBeforeInvasion");
+
+		setCampDist = conf.getInt("camp.setCampDist");
+		setCampProportion = conf.getDouble("camp.setCampProportion");
+		campRadius = conf.getInt("camp.radius");
+
+		mobDensity = conf.getDouble("invasion.mobDensity");
+		nbMobAroundPlayer = conf.getInt("invasion.nbMobAroundPlayer");
+		stalkArea = conf.getInt("invasion.stalkArea");
 	}
 
 	void saveState() {
+		reloadConfig();
 		ConfigurationSection gsConf = conf.getConfigurationSection("gamestate");
 		
 		gsConf.set("lastPauseTime", plugin.getLastPauseTime());
-		gsConf.set("lastSetCampTime", plugin.getLastSetCampTime());
+		long setcamptime = plugin.getLastSetCampTime();
+		gsConf.set("lastSetCampTime", setcamptime);
 		
 		Location campLoc = plugin.getCampLocation();
 		gsConf.set("campLocation.x", campLoc.getBlockX());
@@ -124,10 +151,12 @@ public class ConfigManager {
 		gsConf.set("campLocation.world", campLoc.getWorld().getName());
 
 		for(String player : plugin.getPlayersNames()) {
-			gsConf.set("playersids."+player, plugin.getPlayerId(player));
+			ConfigurationSection plSect = gsConf.createSection("players."+player);
+			plSect.set("mustTeleport",
+					plugin.getMustTeleportPlayer(player));
 		}
 
-		gsConf.set("mustTeleport", plugin.getMustTeleport());
+		plugin.saveConfig();
 	}
 }
 

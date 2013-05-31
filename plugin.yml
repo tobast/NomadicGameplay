@@ -2,3 +2,14 @@ name: NomadicGameplay
 main: fr.tobast.bukkit.nomadicgameplay.NomadicGameplay
 version: 0.9
 author: Tobast
+commands:
+    setcamp:
+        description: Sets your camp here.
+        usage: /setcamp
+        permission: NomadicGameplay.setcamp
+        permission-message: You don't have the permission to do this!
+    nomadic:
+        description: Set of admin commands.
+        usage: /nomadic [reload | save]
+        permission: NomadicGameplay.admin
+        permission-message: You don't have the permission to do this!

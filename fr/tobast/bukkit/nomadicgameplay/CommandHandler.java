@@ -54,6 +54,11 @@ public class CommandHandler {
 			if(onSetCamp(sender))
 				return true;
 		}
+
+		if(label.equals("nomadic")) {
+			if(onNomadicCmd(sender, args))
+				return true;
+		}
 		return false;
 	}
 
@@ -103,11 +108,28 @@ public class CommandHandler {
 		// also update mustTeleport status of offline players to true,
 		// online players to false.
 		for(String plName : plugin.getPlayersNames()) {
-			plugin.setMustTeleportPlayer(plugin.getPlayerId(plName), isOnline(plName));
+			plugin.setMustTeleportPlayer(plName, !isOnline(plName));
 		}
 
 		plugin.getServer().broadcastMessage(pSender.getDisplayName()+" settled a new camp!");
 		return true;
+	}
+
+	private boolean onNomadicCmd(CommandSender sender, String[] args) {
+		if(args.length < 1)
+			return false;
+
+		if(args[0].equals("reload")) {
+			plugin.getCfgManager().reloadConfig();
+			sender.sendMessage("Nomadic reload complete.");
+			return true;
+		} else if(args[0].equals("save")) {
+			plugin.getCfgManager().saveState();
+			sender.sendMessage("Nomadic save complete.");
+			return true;
+		}
+
+		return false;
 	}
 
 	private final int manhattan_2d(final Location l1, final Location l2) {

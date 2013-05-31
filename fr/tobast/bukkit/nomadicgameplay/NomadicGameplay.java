@@ -36,6 +36,7 @@ package fr.tobast.bukkit.nomadicgameplay;
 import org.bukkit.block.BlockFace;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Player;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -50,14 +51,15 @@ import java.lang.IndexOutOfBoundsException;
 import fr.tobast.bukkit.nomadicgameplay.CommandHandler;
 import fr.tobast.bukkit.nomadicgameplay.EventListener;
 import fr.tobast.bukkit.nomadicgameplay.ConfigManager;
+import fr.tobast.bukkit.nomadicgameplay.InvasionHandler;
 
 public class NomadicGameplay extends JavaPlugin {
 	private CommandHandler cmdHandler = new CommandHandler(this);
 	private ConfigManager cfgManager;
+	private InvasionHandler invasionHandler;
 	private long lastPauseTime = 0; 
-	private HashMap<String, Integer> playersIds = new HashMap<String, Integer>();
-	private int nextPlayerId = 0;
-	private ArrayList<Boolean> mustTeleportPlayer;
+	private HashMap<String,Boolean> mustTeleportPlayer =
+		new HashMap<String,Boolean>();
 	private World mainWorld;
 	private Location campLocation;
 	private long lastSetCampTime = 0;
@@ -65,6 +67,10 @@ public class NomadicGameplay extends JavaPlugin {
 // ==== SETTERS/GETTERS ====
 	final ConfigManager getCfgManager() {
 		return cfgManager;
+	}
+
+	final InvasionHandler getInvasionHandler() {
+		return invasionHandler;
 	}
 
 	final long getLastPauseTime() {
@@ -75,46 +81,20 @@ public class NomadicGameplay extends JavaPlugin {
 	}
 
 	final Set<String> getPlayersNames() {
-		return playersIds.keySet();
-	}
-	final int getPlayerId(String name) {
-		Integer id = playersIds.get(name);
-
-		if(id == null) { // Insert the new player
-			id=nextPlayerId;
-			playersIds.put(name, id);
-			mustTeleportPlayer.add(true); // new player
-			nextPlayerId++;
-		}
-
-		return id;
-	}
-	void setPlayerId(String name, int id) {
-		playersIds.put(name,id);
-	}
-	void setNextPlayerId(int id) {
-		nextPlayerId = id;
+		return mustTeleportPlayer.keySet();
 	}
 
-	final List<Boolean> getMustTeleport() {
-		return mustTeleportPlayer;
-	}
-	final boolean getMustTeleportPlayer(int playerId) {
-		boolean out;
-		try {
-			out = mustTeleportPlayer.get(playerId);
-		} catch(IndexOutOfBoundsException e) {
-			out = true; // Where the f*ck did he came from?
+	final boolean getMustTeleportPlayer(String player) {
+		Boolean out = mustTeleportPlayer.get(player);
+
+		if(out == null) { // new player, generate.
+			mustTeleportPlayer.put(player,true);
+			return true;
 		}
 		return out;
 	}
-	void setMustTeleportPlayer(int playerId, boolean val) {
-		if(playerId < 0 || playerId >= mustTeleportPlayer.size())
-			return;
-		mustTeleportPlayer.set(playerId,val);
-	}
-	void setMustTeleport(List<Boolean> list) {
-		mustTeleportPlayer = new ArrayList<Boolean>(list);
+	void setMustTeleportPlayer(String player, boolean val) {
+		mustTeleportPlayer.put(player,val);
 	}
 
 	final Location getCampLocation() {
@@ -149,8 +129,7 @@ public class NomadicGameplay extends JavaPlugin {
 
 // ==== OVERLOADED BUKKIT API FUNCTIONS ====
 	public void onEnable() {
-		cfgManager = new ConfigManager(this);
-		cfgManager.loadConfig();
+		cfgManager = new ConfigManager(this); // loads config
 		initVars();
 		getServer().getPluginManager().registerEvents(new EventListener(this), this);
 	}
@@ -170,6 +149,12 @@ public class NomadicGameplay extends JavaPlugin {
 		mainWorld = getServer().getWorld(cfgManager.mainWorld);
 		if(campLocation.getY() < 0) // Default value
 			campLocation = mainWorld.getSpawnLocation();
+
+		invasionHandler = new InvasionHandler(this);
+
+		// force MustTeleport generation
+		for(Player pl : getServer().getOnlinePlayers())
+			getMustTeleportPlayer(pl.getName());
 	}
 
 	private boolean isValidTeleportLocation(final Location loc) {
