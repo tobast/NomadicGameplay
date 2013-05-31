@@ -33,14 +33,17 @@
 
 package fr.tobast.bukkit.nomadicgameplay;
 
+import org.bukkit.ChatColor;
 import org.bukkit.event.Listener;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
+import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerTeleportEvent.TeleportCause;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.World;
 
 import fr.tobast.bukkit.nomadicgameplay.NomadicGameplay;
@@ -50,6 +53,20 @@ public class EventListener implements Listener {
 
 	EventListener(NomadicGameplay plugin) {
 		this.plugin = plugin;
+	}
+	
+	@EventHandler(priority = EventPriority.NORMAL)
+	void onBlockPlaceEvent(BlockPlaceEvent event) {
+		if(event.isCancelled())
+			return;
+		
+		if(!plugin.inCamp(event.getBlock().getLocation(), 0) &&
+			!plugin.getCfgManager().allowedOutOfCamp(event.getBlock().getTypeId()))
+		{
+			event.setCancelled(true);
+			event.getPlayer().sendMessage(ChatColor.RED+"You may place this "+
+					"block only in your camp!");
+		}
 	}
 
 	@EventHandler(priority = EventPriority.MONITOR)

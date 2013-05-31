@@ -103,7 +103,7 @@ public class InvasionHandler {
 		}
 
 		for(Player player : plugin.getServer().getOnlinePlayers()) {
-			if(inCamp(player.getLocation())) {
+			if(plugin.inCamp(player.getLocation(), 5)) {
 				stalkPlayer(player);
 			} else {
 				isPlayerStalked.put(player.getName(), false);
@@ -124,9 +124,10 @@ public class InvasionHandler {
 		if(!isInvading)
 			return;
 
-		if(invasionEntities.contains(id)) {
+		if(invasionEntities.contains(id))
+		{
 			invasionEntities.remove(id);
-			invasionEntities.add(spawnMobAround(deathLoc, 4));
+			invasionEntities.add(spawnMobAround(plugin.getCampLocation(), 10));
 		}
 		else {
 			String stalkedPl = mobToStalkedPlayer.get(id);
@@ -135,7 +136,7 @@ public class InvasionHandler {
 				Location plLoc =
 					plugin.getServer().getPlayerExact(stalkedPl).getLocation();
 
-				if(inCamp(plLoc)) {
+				if(plugin.inCamp(plLoc, 15)) {
 					mobToStalkedPlayer.put(spawnMobAround(plLoc,
 						plugin.getCfgManager().stalkArea), stalkedPl);
 				}
@@ -209,16 +210,6 @@ public class InvasionHandler {
 			(loc.getBlock().getRelative(BlockFace.UP).getType() == Material.AIR);
 	}
 
-	public boolean inCamp(final Location loc) {
-		Location campLoc = plugin.getCampLocation();
-		int campRad = plugin.getCfgManager().campRadius;
-
-		return (loc.getBlockX() >= campLoc.getBlockX() - campRad) &&
-			(loc.getBlockX() <= campLoc.getBlockX() + campRad) &&
-			(loc.getBlockZ() >= campLoc.getBlockZ() - campRad) &&
-			(loc.getBlockZ() <= campLoc.getBlockZ() + campRad);
-	}
-
 	private class WeatherRegulator extends BukkitRunnable {
 		private World handledWorld;
 		private InvasionHandler handler;
@@ -290,7 +281,7 @@ public class InvasionHandler {
 
 		void ckeckPlayersInCamp() {
 			for(Player pl : plugin.getServer().getOnlinePlayers()) {
-				if(plugin.getInvasionHandler().inCamp(pl.getLocation()) &&
+				if(plugin.getInvasionHandler().plugin.inCamp(pl.getLocation(),0) &&
 						!plugin.getInvasionHandler().isStalked(pl.getName()))
 				{
 					plugin.getInvasionHandler().stalkPlayer(pl);

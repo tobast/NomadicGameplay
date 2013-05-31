@@ -36,6 +36,10 @@ package fr.tobast.bukkit.nomadicgameplay;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.Location;
+import org.bukkit.Material;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import fr.tobast.bukkit.nomadicgameplay.NomadicGameplay;
 
@@ -52,6 +56,7 @@ public class ConfigManager {
 	public double mobDensity;
 	public int nbMobAroundPlayer;
 	public int stalkArea;
+	public ArrayList<Integer> blocksCampOnly;
 
 	ConfigManager(NomadicGameplay plugin) {
 		this.plugin = plugin;
@@ -72,6 +77,11 @@ public class ConfigManager {
 		conf.addDefault("camp.setCampDist", 5);
 		conf.addDefault("camp.setCampProportion", 0.5);
 		conf.addDefault("camp.radius", 10);
+
+		ArrayList<Integer> hereOnly = new ArrayList<Integer>();
+		hereOnly.add(Material.WORKBENCH.getId());
+		hereOnly.add(Material.FURNACE.getId());
+		conf.addDefault("camp.blocksCampOnly", (List<Integer>)hereOnly);
 
 		// invasion.*
 		conf.addDefault("invasion.mobDensity", 0.05);
@@ -130,6 +140,8 @@ public class ConfigManager {
 		setCampDist = conf.getInt("camp.setCampDist");
 		setCampProportion = conf.getDouble("camp.setCampProportion");
 		campRadius = conf.getInt("camp.radius");
+		blocksCampOnly = new ArrayList<Integer>(conf.getIntegerList(
+					"camp.blocksCampOnly"));
 
 		mobDensity = conf.getDouble("invasion.mobDensity");
 		nbMobAroundPlayer = conf.getInt("invasion.nbMobAroundPlayer");
@@ -157,6 +169,14 @@ public class ConfigManager {
 		}
 
 		plugin.saveConfig();
+	}
+
+	public boolean allowedOutOfCamp(int typeId) {
+		for(int forbiddenType : blocksCampOnly) {
+			if(typeId == forbiddenType)
+				return false;
+		}
+		return true;
 	}
 }
 

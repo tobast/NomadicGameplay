@@ -107,6 +107,16 @@ public class NomadicGameplay extends JavaPlugin {
 		}
 		return tpCampLoc;
 	}
+	public boolean inCamp(final Location loc, final int posAdd) {
+		Location campLoc = getCampLocation();
+		int campRad = getCfgManager().campRadius;
+
+		return (loc.getBlockX() >= campLoc.getBlockX() - campRad - posAdd) &&
+			(loc.getBlockX() <= campLoc.getBlockX() + campRad + posAdd) &&
+			(loc.getBlockZ() >= campLoc.getBlockZ() - campRad - posAdd) &&
+			(loc.getBlockZ() <= campLoc.getBlockZ() + campRad + posAdd);
+	}
+
 
 	final int distToCamp(Location loc) { // Manhattan shall be enough
 		return Math.abs(campLocation.getBlockX() - loc.getBlockX())
