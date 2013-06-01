@@ -34,6 +34,8 @@
 package fr.tobast.bukkit.nomadicgameplay;
 
 import org.bukkit.ChatColor;
+import org.bukkit.entity.EntityType;
+import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -71,9 +73,13 @@ public class EventListener implements Listener {
 
 	@EventHandler(priority = EventPriority.MONITOR)
 	void onEntityDeathEvent(EntityDeathEvent event) {
-		int entityId = event.getEntity().getEntityId();
-		Location deathLoc = event.getEntity().getLocation();
-		plugin.getInvasionHandler().entityDied(entityId, deathLoc);
+		if(event.getEntity().getType() == EntityType.PLAYER) {
+			playerDiedEvent((Player)event.getEntity());
+		} else {
+			int entityId = event.getEntity().getEntityId();
+			Location deathLoc = event.getEntity().getLocation();
+			plugin.getInvasionHandler().entityDied(entityId, deathLoc);
+		}
 	}
 
 	@EventHandler(priority = EventPriority.HIGHEST) // Teleportation
@@ -97,6 +103,10 @@ public class EventListener implements Listener {
 			// Save game's state for further restore
 			plugin.setLastPauseTime(event.getPlayer().getLocation().getWorld().getFullTime());
 		}
+	}
+
+	void playerDiedEvent(Player pl) {
+		//TODO
 	}
 }
 
