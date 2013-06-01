@@ -67,6 +67,7 @@ public class NomadicGameplay extends JavaPlugin {
 	private World mainWorld;
 	private Location campLocation;
 	private long lastSetCampTime = 0;
+	private int nbPlayers = 0;
 
 // ==== SETTERS/GETTERS ====
 	final BlocksHandler getBlocksHandler() {
@@ -78,6 +79,16 @@ public class NomadicGameplay extends JavaPlugin {
 
 	final InvasionHandler getInvasionHandler() {
 		return invasionHandler;
+	}
+
+	final boolean isServerEmpty() {
+		return nbPlayers == 0;
+	}
+	void playerConnected() {
+		nbPlayers++;
+	}
+	void playerDisconnected() {
+		nbPlayers--;
 	}
 
 	final long getLastPauseTime() {
@@ -222,8 +233,10 @@ public class NomadicGameplay extends JavaPlugin {
 		invasionHandler = new InvasionHandler(this);
 
 		// force MustTeleport generation
-		for(Player pl : getServer().getOnlinePlayers())
+		for(Player pl : getServer().getOnlinePlayers()) {
+			nbPlayers++;
 			getMustTeleportPlayer(pl.getName());
+		}
 	}
 
 	private boolean isValidTeleportLocation(final Location loc) {

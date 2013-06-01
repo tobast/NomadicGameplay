@@ -59,14 +59,16 @@ public class InvasionHandler {
 		new	HashMap<String,Boolean>();
 	private HashMap<Integer, String> mobToStalkedPlayer =
 		new HashMap<Integer, String>();
-	private ArrayList<LivingEntity> toKillEntities = new ArrayList<LivingEntity>();
+	private ArrayList<LivingEntity> toKillEntities =
+		new ArrayList<LivingEntity>();
 	private boolean isInvading = false;
 	private WeatherRegulator weatherReg;
 	private InvasionRepeatCheck repeatChecker;
 
 	InvasionHandler(NomadicGameplay plugin) {
 		this.plugin = plugin;
-		weatherReg = new WeatherRegulator(plugin.getCampLocation().getWorld(), this);
+		weatherReg = new WeatherRegulator(plugin.getCampLocation().getWorld(),
+				this);
 		weatherReg.runTaskTimer(plugin, 0, 9000);
 		repeatChecker = new InvasionRepeatCheck(plugin);
 		repeatChecker.runTaskTimer(plugin, 0, 50);
@@ -79,7 +81,7 @@ public class InvasionHandler {
 	void triggerInvasion() {
 		Location campLoc = plugin.getCampLocation();
 
-		if(!campLoc.getChunk().isLoaded()) { // nobody's here
+		if(!campLoc.getChunk().isLoaded() || plugin.isServerEmpty()) {
 			if(isInvading)
 				endInvasion();
 			return;
@@ -88,7 +90,8 @@ public class InvasionHandler {
 		if(isInvading)
 			return;
 
-		plugin.getServer().broadcastMessage(ChatColor.DARK_PURPLE+"We're under attack!");
+		plugin.getServer().broadcastMessage(ChatColor.DARK_PURPLE+
+				"We're under attack!");
 
 		isInvading = true;
 
@@ -171,9 +174,12 @@ public class InvasionHandler {
 	}
 
 	private int spawnMobAround(Location loc, int zoneRadius) {
-		int locX = loc.getBlockX() + randGen.nextInt(2*zoneRadius+1) - zoneRadius;
-		int locZ = loc.getBlockZ() + randGen.nextInt(2*zoneRadius+1) - zoneRadius;
-		Location spawnLoc = new Location(loc.getWorld(), locX, loc.getY(), locZ);
+		int locX = loc.getBlockX() + randGen.nextInt(2*zoneRadius+1)
+			- zoneRadius;
+		int locZ = loc.getBlockZ() + randGen.nextInt(2*zoneRadius+1)
+			- zoneRadius;
+		Location spawnLoc = new Location(loc.getWorld(), locX, loc.getY(),
+			locZ);
 		spawnLoc = nearestAir(spawnLoc);
 
 		LivingEntity mob = ((LivingEntity)loc.getWorld().spawnEntity(
@@ -207,7 +213,8 @@ public class InvasionHandler {
 
 	private boolean isSpawnable(final Location loc) {
 		return (loc.getBlock().getType() == Material.AIR) &&
-			(loc.getBlock().getRelative(BlockFace.UP).getType() == Material.AIR);
+			(loc.getBlock().getRelative(BlockFace.UP).getType() ==
+			 Material.AIR);
 	}
 
 	private class WeatherRegulator extends BukkitRunnable {
@@ -281,8 +288,8 @@ public class InvasionHandler {
 
 		void ckeckPlayersInCamp() {
 			for(Player pl : plugin.getServer().getOnlinePlayers()) {
-				if(plugin.getInvasionHandler().plugin.inCamp(pl.getLocation(),0) &&
-						!plugin.getInvasionHandler().isStalked(pl.getName()))
+				if(plugin.getInvasionHandler().plugin.inCamp(pl.getLocation(),0)
+					&& !plugin.getInvasionHandler().isStalked(pl.getName()))
 				{
 					plugin.getInvasionHandler().stalkPlayer(pl);
 				}

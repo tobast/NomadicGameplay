@@ -85,6 +85,8 @@ public class EventListener implements Listener {
 
 	@EventHandler(priority = EventPriority.HIGHEST) // Teleportation
 	void onPlayerJoinEvent(PlayerJoinEvent event) {
+		plugin.playerConnected();
+
 		if(!plugin.playerCanSpawn(event.getPlayer().getName())) {
 			kickDeadPlayer(event.getPlayer());
 		}
@@ -104,6 +106,7 @@ public class EventListener implements Listener {
 
 	@EventHandler(priority = EventPriority.MONITOR)
 	void onPlayerQuitEvent(PlayerQuitEvent event) {
+		plugin.playerDisconnected();
 		if(plugin.getServer().getOnlinePlayers().length == 1) { // No one left
 			// Save game's state for further restore
 			plugin.setLastPauseTime(event.getPlayer().getLocation().
