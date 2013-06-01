@@ -57,6 +57,7 @@ public class ConfigManager {
 	public int nbMobAroundPlayer;
 	public int stalkArea;
 	public ArrayList<Integer> blocksCampOnly;
+	public int respawnDelay;
 
 	ConfigManager(NomadicGameplay plugin) {
 		this.plugin = plugin;
@@ -87,6 +88,9 @@ public class ConfigManager {
 		conf.addDefault("invasion.mobDensity", 0.05);
 		conf.addDefault("invasion.nbMobAroundPlayer", 3);
 		conf.addDefault("invasion.stalkArea", 3);
+
+		// death.*
+		conf.addDefault("death.respawnDelay", 1800000); // millisec = 30min
 
 		// gamestate.*
 		conf.addDefault("gamestate.lastPauseTime", 0);
@@ -146,6 +150,8 @@ public class ConfigManager {
 		mobDensity = conf.getDouble("invasion.mobDensity");
 		nbMobAroundPlayer = conf.getInt("invasion.nbMobAroundPlayer");
 		stalkArea = conf.getInt("invasion.stalkArea");
+
+		respawnDelay = conf.getInt("death.respawnDelay");
 	}
 
 	void saveState() {

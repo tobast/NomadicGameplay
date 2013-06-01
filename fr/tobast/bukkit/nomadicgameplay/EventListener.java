@@ -63,7 +63,8 @@ public class EventListener implements Listener {
 			return;
 		
 		if(!plugin.inCamp(event.getBlock().getLocation(), 0) &&
-			!plugin.getCfgManager().allowedOutOfCamp(event.getBlock().getTypeId()))
+			!plugin.getCfgManager().allowedOutOfCamp(
+				event.getBlock().getTypeId()))
 		{
 			event.setCancelled(true);
 			event.getPlayer().sendMessage(ChatColor.RED+"You may place this "+
@@ -84,6 +85,10 @@ public class EventListener implements Listener {
 
 	@EventHandler(priority = EventPriority.HIGHEST) // Teleportation
 	void onPlayerJoinEvent(PlayerJoinEvent event) {
+		if(!plugin.playerCanSpawn(event.getPlayer().getName())) {
+			kickDeadPlayer(event.getPlayer());
+		}
+
 		if(plugin.getServer().getOnlinePlayers().length == 1) { // Only player
 			for(World world : plugin.getServer().getWorlds())
 				world.setFullTime(plugin.getLastPauseTime());
@@ -101,12 +106,21 @@ public class EventListener implements Listener {
 	void onPlayerQuitEvent(PlayerQuitEvent event) {
 		if(plugin.getServer().getOnlinePlayers().length == 1) { // No one left
 			// Save game's state for further restore
-			plugin.setLastPauseTime(event.getPlayer().getLocation().getWorld().getFullTime());
+			plugin.setLastPauseTime(event.getPlayer().getLocation().
+					getWorld().getFullTime());
 		}
 	}
 
 	void playerDiedEvent(Player pl) {
-		//TODO
+		int respawnDelay = plugin.getCfgManager().respawnDelay;
+		plugin.setPlayerCanSpawnTime(pl.getName(), respawnDelay + 
+				plugin.realTime());
+		kickDeadPlayer(pl);
+	}
+	void kickDeadPlayer(Player pl) {
+		pl.kickPlayer("You died. You'll be able to respawn in "+
+				plugin.humanReadableTime(plugin.playerCanSpawnTime(pl.getName())
+				- plugin.realTime()) + ", if nobody saves you before.");
 	}
 }
 

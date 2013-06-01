@@ -62,6 +62,8 @@ public class NomadicGameplay extends JavaPlugin {
 	private long lastPauseTime = 0; 
 	private HashMap<String,Boolean> mustTeleportPlayer =
 		new HashMap<String,Boolean>();
+	private HashMap<String,Long> canSpawnAfter =
+		new HashMap<String,Long>();
 	private World mainWorld;
 	private Location campLocation;
 	private long lastSetCampTime = 0;
@@ -100,6 +102,21 @@ public class NomadicGameplay extends JavaPlugin {
 	}
 	void setMustTeleportPlayer(String player, boolean val) {
 		mustTeleportPlayer.put(player,val);
+	}
+
+	final long playerCanSpawnTime(final String player) {
+		Long out = canSpawnAfter.get(player);
+		if(out == null) {
+			canSpawnAfter.put(player, 0l);
+			return 0l;
+		}
+		return out;
+	}
+	final boolean playerCanSpawn(final String player) {
+		return (playerCanSpawnTime(player) < realTime());
+	}
+	void setPlayerCanSpawnTime(final String player, final long date) {
+		canSpawnAfter.put(player, date);
 	}
 
 	final Location getCampLocation() {
@@ -146,16 +163,48 @@ public class NomadicGameplay extends JavaPlugin {
 		return mainWorld;
 	}
 
+	final long realTime() {
+		java.util.Date date = new java.util.Date();
+		return (new java.sql.Timestamp(date.getTime())).getTime();
+	}
+
+	private final static int[] TIME_DIVISORS = new int[]{60, 60, 24, 1};
+	private final static String[] TIME_INDICATORS =
+		new String[]{"s", "min", "h", "d"};
+	final String humanReadableTime(final long dateOrig) {
+		long date = dateOrig;
+		date /= 1000; // Convert ms to s
+
+		ArrayList<String> timeparts = new ArrayList<String>();
+		for(int unit=0; unit < 4; unit++) {
+			if(date == 0)
+				break;
+
+			timeparts.add(date % TIME_DIVISORS[unit]+TIME_INDICATORS[unit]);
+			date /= TIME_DIVISORS[unit];
+		}
+		String out = new String();
+
+		for(int pos = timeparts.size()-1; pos >= 0; pos--) {
+			out += timeparts.get(pos);
+			if(pos != 0)
+				out+=' ';
+		}
+		return out;
+	}
+
 // ==== OVERLOADED BUKKIT API FUNCTIONS ====
 	public void onEnable() {
 		cfgManager = new ConfigManager(this); // loads config
 		initVars();
-		getServer().getPluginManager().registerEvents(new EventListener(this), this);
+		getServer().getPluginManager().registerEvents(new EventListener(this),
+				this);
 	}
 
 	@Override
-	public boolean onCommand(CommandSender sender, Command command, String label,
-			String[] args) {
+	public boolean onCommand(CommandSender sender, Command command,
+			String label, String[] args)
+	{
 		return cmdHandler.onCommand(sender, command, label, args);
 	}
 
