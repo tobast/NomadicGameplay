@@ -160,6 +160,7 @@ public class NomadicGameplay extends JavaPlugin {
 	}
 
 	public void onDisable() {
+		invasionHandler.endInvasion(); // Kill assoc. mobs
 		cfgManager.saveState();
 	}
 
