@@ -130,8 +130,10 @@ public class ConfigManager {
 		ConfigurationSection playersSect = 
 			conf.getConfigurationSection("gamestate.players");
 		for(String player : playersSect.getKeys(false)) {
-			plugin.setMustTeleportPlayer(player, conf.getBoolean(
-						"gamestate.players."+player+".mustTeleport"));
+			plugin.setMustTeleportPlayer(player, playersSect.getBoolean(
+						player+".mustTeleport"));
+			plugin.setPlayerCanSpawnTime(player, playersSect.getLong(
+						player+".respawnTime", 0));
 		}
 	}
 
@@ -169,9 +171,12 @@ public class ConfigManager {
 		gsConf.set("campLocation.world", campLoc.getWorld().getName());
 
 		for(String player : plugin.getPlayersNames()) {
-			ConfigurationSection plSect = gsConf.createSection("players."+player);
+			ConfigurationSection plSect = gsConf.createSection(
+					"players."+player);
 			plSect.set("mustTeleport",
 					plugin.getMustTeleportPlayer(player));
+			plSect.set("respawnTime",
+					plugin.playerCanSpawnTime(player));
 		}
 
 		plugin.saveConfig();

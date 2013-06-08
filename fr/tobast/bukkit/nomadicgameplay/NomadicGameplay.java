@@ -43,6 +43,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.World;
 
 import java.util.Set;
+import java.util.TreeSet;
 import java.util.List;
 import java.util.HashMap;
 import java.util.ArrayList;
@@ -98,8 +99,12 @@ public class NomadicGameplay extends JavaPlugin {
 		this.lastPauseTime = lastPauseTime;
 	}
 
-	final Set<String> getPlayersNames() {
-		return mustTeleportPlayer.keySet();
+	final TreeSet<String> getPlayersNames() {
+		TreeSet<String> outSet =
+			new TreeSet<String>(mustTeleportPlayer.keySet());
+		for(String str : canSpawnAfter.keySet())
+			outSet.add(str);
+		return outSet;
 	}
 
 	final boolean getMustTeleportPlayer(String player) {
