@@ -69,6 +69,16 @@ public class NomadicGameplay extends JavaPlugin {
 	private Location campLocation;
 	private long lastSetCampTime = 0;
 	private int nbPlayers = 0;
+	private HashMap<String,SaveWish> playerSaveWish =
+		new HashMap<String,SaveWish>();
+	private class SaveWish {
+		public SaveWish(String pl, long expDate) {
+			player=pl;
+			expireDate = expDate;
+		}
+		public String player;
+		public long expireDate;
+	}
 
 // ==== SETTERS/GETTERS ====
 	final BlocksHandler getBlocksHandler() {
@@ -177,6 +187,33 @@ public class NomadicGameplay extends JavaPlugin {
 
 	final World getMainWorld() {
 		return mainWorld;
+	}
+
+	final String getSaveWish(final String plName) {
+		SaveWish wish = playerSaveWish.get(plName);
+		if(wish == null)
+			return null;
+		if(wish.expireDate > realTime())
+			return null;
+		return wish.player;
+	}
+	final boolean isSaveWishValid(final String plName) {
+		String resName = getSaveWish(plName);
+		if(resName == null)
+			return false;
+
+		Long resTime = canSpawnAfter.get(resName);
+		if(resTime == null || resTime <= realTime())
+			return false;
+		return true;
+	}
+	void accomplishSaveWish(final String plName) {
+		String wish = getSaveWish(plName);
+		canSpawnAfter.put(wish, 0l);
+	}
+	void setSaveWish(final String plName, final String saveName) {
+		SaveWish wish = new SaveWish(saveName, realTime()+15);
+		playerSaveWish.put(plName, wish);
 	}
 
 	final long realTime() {

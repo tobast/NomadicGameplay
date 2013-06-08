@@ -34,7 +34,10 @@
 package fr.tobast.bukkit.nomadicgameplay;
 
 import org.bukkit.block.Block;
+import org.bukkit.block.BlockFace;
 import org.bukkit.Location;
+import org.bukkit.Material;
+import org.bukkit.Sound;
 
 import fr.tobast.bukkit.nomadicgameplay.NomadicGameplay;
 
@@ -70,5 +73,61 @@ public class BlocksHandler {
 		}
 	}
 
+	private final static int NB_FACES = 4;
+	private final static BlockFace[] FACES = { BlockFace.NORTH, BlockFace.EAST,
+		BlockFace.SOUTH, BlockFace.WEST };
+	boolean isTotemBase(final Location base) {
+		Location locIt = base.clone();
+
+		for(int asc=0; asc < 3; asc++) { // iterate through logs
+			if(locIt.getBlock().getType() != Material.LOG)
+				return false;
+			locIt.add(0,1,0); //ascend
+		}
+		if(locIt.getBlock().getType() != Material.PUMPKIN) // head
+			return false;
+
+		locIt.add(0,-1,0);
+		Block armsHolder = locIt.getBlock();
+		for(int face=0; face < NB_FACES/2; face++) { // /2 because symetry
+			if(armsHolder.getRelative(FACES[face]).getType() ==
+					Material.REDSTONE_TORCH_ON &&
+					armsHolder.getRelative(FACES[face].getOppositeFace()).
+					getType() == Material.REDSTONE_TORCH_ON)
+				return true;
+		}
+		return false;
+	}
+
+	boolean hasAdjacentTotem(final Location loc) {
+		return getAdjacentTotem(loc) != null;
+	}
+	final Location getAdjacentTotem(final Location loc) {
+		Block locBlock = loc.getBlock();
+		for(int face=0; face < NB_FACES; face++) {
+			if(isTotemBase(locBlock.getRelative(FACES[face]).getLocation())) {
+				return locBlock.getRelative(FACES[face]).getLocation();
+			}
+		}
+		return null;
+	}
+
+	void playTotemEffect(final Location loc) {
+		Block pumpkin = loc.getBlock().getRelative(BlockFace.UP, 3);
+		if(pumpkin.getType() != Material.PUMPKIN)
+			return; // not a totem
+		
+		loc.getWorld().strikeLightningEffect(pumpkin.getLocation());
+		pumpkin.setType(Material.JACK_O_LANTERN);
+
+		Block torchHolder = pumpkin.getRelative(BlockFace.DOWN);
+		for(int face=0; face < NB_FACES; face++) { // remove torches
+			Block torchBlock = torchHolder.getRelative(FACES[face]);
+			if(torchBlock.getType() == Material.REDSTONE_TORCH_ON)
+				torchBlock.setType(Material.TORCH);
+		}
+
+		loc.getWorld().playSound(loc, Sound.PORTAL, 20.0f, 1.0f);
+	}
 }
 

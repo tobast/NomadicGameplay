@@ -136,6 +136,10 @@ public class CommandHandler {
 			plugin.getCfgManager().saveState();
 			sender.sendMessage(ChatColor.GREEN+"Nomadic save complete.");
 			return true;
+		} else if(args[0].equals("setDummyDead")) {
+			plugin.setPlayerCanSpawnTime("dummy", plugin.realTime()*10l);
+			sender.sendMessage("Dummy killed.");
+			return true;
 		}
 
 		return false;

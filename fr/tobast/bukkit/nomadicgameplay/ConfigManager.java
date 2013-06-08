@@ -58,6 +58,7 @@ public class ConfigManager {
 	public int stalkArea;
 	public ArrayList<Integer> blocksCampOnly;
 	public int respawnDelay;
+	public String resurrectIncantation;
 
 	ConfigManager(NomadicGameplay plugin) {
 		this.plugin = plugin;
@@ -91,6 +92,8 @@ public class ConfigManager {
 
 		// death.*
 		conf.addDefault("death.respawnDelay", 1800000); // millisec = 30min
+		conf.addDefault("death.resurrectIncantation", 
+				", I summon you from the deads!");
 
 		// gamestate.*
 		conf.addDefault("gamestate.lastPauseTime", 0);
@@ -154,6 +157,7 @@ public class ConfigManager {
 		stalkArea = conf.getInt("invasion.stalkArea");
 
 		respawnDelay = conf.getInt("death.respawnDelay");
+		resurrectIncantation = conf.getString("death.resurrectIncantation");
 	}
 
 	void saveState() {

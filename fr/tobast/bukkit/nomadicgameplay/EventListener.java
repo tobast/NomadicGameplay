@@ -41,6 +41,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityDeathEvent;
+import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerTeleportEvent.TeleportCause;
@@ -61,6 +62,22 @@ public class EventListener implements Listener {
 	void onBlockPlaceEvent(BlockPlaceEvent event) {
 		if(event.isCancelled())
 			return;
+
+		if(event.getBlock().getType() == Material.RED_ROSE) { // Resurrecting ?
+			Location totemBase = plugin.getBlocksHandler().getAdjacentTotem(
+					event.getBlock().getLocation());
+			if(totemBase != null &&
+					plugin.isSaveWishValid(event.getPlayer().getName()))
+			{
+				String saveWish = plugin.getSaveWish(event.getPlayer().
+						getName());
+				plugin.getBlocksHandler().playTotemEffect(totemBase);
+				plugin.accomplishSaveWish(event.getPlayer().getName());
+				plugin.getServer().broadcastMessage(ChatColor.YELLOW+saveWish+
+						" is no longer doomed, and is now free to walk on "+
+						"these lands again.");
+			}
+		}
 		
 		if(!plugin.inCamp(event.getBlock().getLocation(), 0) &&
 			!plugin.getCfgManager().allowedOutOfCamp(
@@ -81,6 +98,19 @@ public class EventListener implements Listener {
 			Location deathLoc = event.getEntity().getLocation();
 			plugin.getInvasionHandler().entityDied(entityId, deathLoc);
 		}
+	}
+
+	@EventHandler(priority = EventPriority.MONITOR)
+	void onPlayerChatEvent(AsyncPlayerChatEvent event) {
+		String mess = event.getMessage();
+		String repl = mess.replace(plugin.getCfgManager().resurrectIncantation,
+				"");
+		if(repl.equals(mess)) // nothing replaced
+			return;
+		else if(repl.contains(" "))
+			return;
+
+		plugin.setSaveWish(event.getPlayer().getName(), repl);
 	}
 
 	@EventHandler(priority = EventPriority.HIGHEST) // Teleportation
