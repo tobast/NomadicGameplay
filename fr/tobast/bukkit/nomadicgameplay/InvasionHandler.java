@@ -97,7 +97,7 @@ public class InvasionHandler {
 
 		weatherReg.forceWeather();
 
-		int campRadius = plugin.getCfgManager().campRadius;
+		int campRadius = plugin.getCfgManager().campRadius * 3;
 		int nbMobs = (int)Math.ceil(plugin.getCfgManager().mobDensity *
 				((double)Math.pow(2*campRadius + 1,2)));
 
@@ -263,8 +263,7 @@ public class InvasionHandler {
 			boolean invaded = plugin.getInvasionHandler().isInvading();
 			if(!invaded) {
 				// Check if we are now invaded.
-				if(plugin.getCfgManager().daysBeforeInvasion * 24000 +
-						plugin.getLastSetCampTime() < 
+				if(plugin.getNextInvasionDate() <
 						plugin.getMainWorld().getFullTime())
 				{
 					plugin.getInvasionHandler().triggerInvasion();
@@ -272,8 +271,7 @@ public class InvasionHandler {
 				}
 			} else {
 				// Check if invasion ended
-				if(plugin.getCfgManager().daysBeforeInvasion * 24000 +
-						plugin.getLastSetCampTime() >=
+				if(plugin.getNextInvasionDate() >=
 						plugin.getMainWorld().getFullTime())
 				{
 					plugin.getInvasionHandler().endInvasion();

@@ -46,6 +46,7 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.List;
 import java.util.HashMap;
+import java.util.Random;
 import java.util.ArrayList;
 import java.lang.IndexOutOfBoundsException;
 
@@ -79,6 +80,8 @@ public class NomadicGameplay extends JavaPlugin {
 		public String player;
 		public long expireDate;
 	}
+	private long nextInvasionDate = -1;
+	private Random randGen = new Random();
 
 // ==== SETTERS/GETTERS ====
 	final BlocksHandler getBlocksHandler() {
@@ -175,6 +178,7 @@ public class NomadicGameplay extends JavaPlugin {
 		// Indeed, an admin command shall be able to set camp everywhere.
 		campLocation = camp;
 		lastSetCampTime = mainWorld.getFullTime();
+		resetInvasionDate();
 	}
 	void setCampInit(Location camp, long lastSetCampTime) {
 		campLocation = camp;
@@ -214,6 +218,21 @@ public class NomadicGameplay extends JavaPlugin {
 	void setSaveWish(final String plName, final String saveName) {
 		SaveWish wish = new SaveWish(saveName, realTime()+15);
 		playerSaveWish.put(plName, wish);
+	}
+
+	final long getNextInvasionDate() {
+		return nextInvasionDate;
+	}
+	void resetInvasionDate() {
+		nextInvasionDate =  mainWorld.getFullTime() + 
+			((long)randGaussian(24000*cfgManager.daysBeforeInvasion,
+				24000*cfgManager.invasionStdDerivation));
+	}
+	double randGaussian(double mean, double der) {
+		return randGen.nextGaussian() * der + mean;
+	}
+	void setInvasionDate(long date) {
+		nextInvasionDate = date;
 	}
 
 	final long realTime() {
@@ -279,6 +298,9 @@ public class NomadicGameplay extends JavaPlugin {
 			nbPlayers++;
 			getMustTeleportPlayer(pl.getName());
 		}
+
+		if(nextInvasionDate < 0) // first run
+			resetInvasionDate();
 	}
 
 	private boolean isValidTeleportLocation(final Location loc) {

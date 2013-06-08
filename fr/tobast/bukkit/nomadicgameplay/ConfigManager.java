@@ -49,7 +49,8 @@ public class ConfigManager {
 
 	public String mainWorld;
 	public int minTravelDistance;
-	public int daysBeforeInvasion;
+	public double daysBeforeInvasion;
+	public double invasionStdDerivation;
 	public int setCampDist;
 	public double setCampProportion;
 	public int campRadius;
@@ -73,7 +74,6 @@ public class ConfigManager {
 
 		// roam.*
 		conf.addDefault("roam.minTravelDistance", 500);
-		conf.addDefault("roam.daysBeforeInvasion", 3);
 
 		// camp.*
 		conf.addDefault("camp.setCampDist", 5);
@@ -86,6 +86,8 @@ public class ConfigManager {
 		conf.addDefault("camp.blocksCampOnly", (List<Integer>)hereOnly);
 
 		// invasion.*
+		conf.addDefault("invasion.daysBefore", 3);
+		conf.addDefault("invasion.standardDerivation", 0.75);
 		conf.addDefault("invasion.mobDensity", 0.05);
 		conf.addDefault("invasion.nbMobAroundPlayer", 3);
 		conf.addDefault("invasion.stalkArea", 3);
@@ -129,6 +131,7 @@ public class ConfigManager {
 				conf.getInt("gamestate.campLocation.y"),
 				conf.getInt("gamestate.campLocation.z"));
 		plugin.setCampInit(campLoc, conf.getInt("gamestate.lastSetCampTime"));
+		plugin.setInvasionDate(conf.getLong("gamestate.nextInvasionDate"));
 
 		ConfigurationSection playersSect = 
 			conf.getConfigurationSection("gamestate.players");
@@ -144,7 +147,6 @@ public class ConfigManager {
 		mainWorld = conf.getString("map.mainworld");
 
 		minTravelDistance  = conf.getInt("roam.minTravelDistance");
-		daysBeforeInvasion = conf.getInt("roam.daysBeforeInvasion");
 
 		setCampDist = conf.getInt("camp.setCampDist");
 		setCampProportion = conf.getDouble("camp.setCampProportion");
@@ -152,6 +154,8 @@ public class ConfigManager {
 		blocksCampOnly = new ArrayList<Integer>(conf.getIntegerList(
 					"camp.blocksCampOnly"));
 
+		daysBeforeInvasion = conf.getDouble("invasion.daysBefore");
+		invasionStdDerivation = conf.getDouble("invasion.standardDerivation");
 		mobDensity = conf.getDouble("invasion.mobDensity");
 		nbMobAroundPlayer = conf.getInt("invasion.nbMobAroundPlayer");
 		stalkArea = conf.getInt("invasion.stalkArea");
@@ -167,6 +171,7 @@ public class ConfigManager {
 		gsConf.set("lastPauseTime", plugin.getLastPauseTime());
 		long setcamptime = plugin.getLastSetCampTime();
 		gsConf.set("lastSetCampTime", setcamptime);
+		gsConf.set("nextInvasionDate", (long)plugin.getNextInvasionDate());
 		
 		Location campLoc = plugin.getCampLocation();
 		gsConf.set("campLocation.x", campLoc.getBlockX());
