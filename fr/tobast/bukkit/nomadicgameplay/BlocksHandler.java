@@ -47,11 +47,14 @@ public class BlocksHandler {
 
 	void destroyUnplaceableBlocks(final Location center, final int radius) {
 		Location beginLoc = center.clone().add(-radius, 0, -radius);
-		plugin.getServer().getLogger().info("Beginning with "+beginLoc.toString());
+		plugin.getServer().getLogger().info("Beginning with "+
+				beginLoc.toString());
 
+		final int maxX = beginLoc.getBlockX() + 2*radius+1;
+		final int maxZ = beginLoc.getBlockZ() + 2*radius+1;
 		for(int y=1; y < 256; y++) {
-			for(int x=beginLoc.getBlockX(); x < beginLoc.getBlockX()+2*radius+1; x++) {
-				for(int z=beginLoc.getBlockZ(); z < beginLoc.getBlockZ()+2*radius+1; z++){
+			for(int x=beginLoc.getBlockX(); x < maxX; x++) {
+				for(int z=beginLoc.getBlockZ(); z < maxZ; z++){
 					Location cLoc = beginLoc.clone();
 					cLoc.setX(x);
 					cLoc.setY(y);
