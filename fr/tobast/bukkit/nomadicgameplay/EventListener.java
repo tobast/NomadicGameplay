@@ -49,6 +49,7 @@ import org.bukkit.event.player.PlayerTeleportEvent.TeleportCause;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.World;
 
 import fr.tobast.bukkit.nomadicgameplay.NomadicGameplay;
@@ -148,9 +149,15 @@ public class EventListener implements Listener {
 
 	@EventHandler(priority = EventPriority.MONITOR)
 	void onPlayerRespawnEvent(PlayerRespawnEvent event) {
-		// Add some survivalist stuff to the player's inventory
 		Player pl = event.getPlayer();
-		// Give apple, water, lighter, torch. Only that.
+
+		if(!plugin.playerCanSpawn(pl.getName()))
+			kickDeadPlayerLater(pl);
+
+		// TP to the camp
+		pl.teleport(plugin.getCampTeleportLocation(), TeleportCause.PLUGIN);
+
+		// Add some survivalist stuff to the player's inventory
 		pl.getInventory().clear();
 		pl.getInventory().addItem(
 				new ItemStack(Material.APPLE, 1),
@@ -163,12 +170,34 @@ public class EventListener implements Listener {
 		int respawnDelay = plugin.getCfgManager().respawnDelay;
 		plugin.setPlayerCanSpawnTime(pl.getName(), respawnDelay + 
 				plugin.realTime());
-		kickDeadPlayer(pl);
 	}
 	void kickDeadPlayer(Player pl) {
+		if(pl==null)
+			return;
 		pl.kickPlayer("You died. You'll be able to respawn in "+
 				plugin.humanReadableTime(plugin.playerCanSpawnTime(pl.getName())
 				- plugin.realTime()) + ", if nobody saves you before.");
+	}
+
+	// Workaround: if we kick a player directly upon its respawn,
+	// he will not be respawned properly. This way, we let a few
+	// ticks to the server to respawn him properly.
+	void kickDeadPlayerLater(Player pl) {
+		DelayedKicker kicker = new DelayedKicker(this,pl);
+		kicker.runTaskLater(plugin, 5);
+	}
+	private class DelayedKicker extends BukkitRunnable {
+		private EventListener listener;
+		private Player pl;
+		public DelayedKicker(EventListener listener, Player pl) {
+			this.listener=listener;
+			this.pl=pl;
+		}
+
+		@Override
+		public void run() {
+			listener.kickDeadPlayer(pl);
+		}
 	}
 }
 
