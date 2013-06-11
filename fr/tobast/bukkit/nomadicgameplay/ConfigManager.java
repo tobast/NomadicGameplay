@@ -83,6 +83,9 @@ public class ConfigManager {
 		ArrayList<Integer> hereOnly = new ArrayList<Integer>();
 		hereOnly.add(Material.WORKBENCH.getId());
 		hereOnly.add(Material.FURNACE.getId());
+		hereOnly.add(Material.CHEST.getId());
+		hereOnly.add(Material.TRAPPED_CHEST.getId());
+		hereOnly.add(Material.BED.getId());
 		conf.addDefault("camp.blocksCampOnly", (List<Integer>)hereOnly);
 
 		// invasion.*
