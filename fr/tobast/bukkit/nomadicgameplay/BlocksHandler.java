@@ -29,7 +29,7 @@
  *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see http://www.gnu.org/licenses/gpl.txt.
-*/
+ */
 
 package fr.tobast.bukkit.nomadicgameplay;
 
@@ -38,12 +38,14 @@ import org.bukkit.block.BlockFace;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.Sound;
+import org.bukkit.craftbukkit.v1_5_R3.CraftWorld;
+import net.minecraft.server.v1_5_R3.ChunkProviderGenerate;
 
 import fr.tobast.bukkit.nomadicgameplay.NomadicGameplay;
 
 public class BlocksHandler {
 	NomadicGameplay plugin;
-	
+
 	BlocksHandler(NomadicGameplay plugin) {
 		this.plugin = plugin;
 	}
@@ -114,7 +116,7 @@ public class BlocksHandler {
 		Block pumpkin = loc.getBlock().getRelative(BlockFace.UP, 3);
 		if(pumpkin.getType() != Material.PUMPKIN)
 			return; // not a totem
-		
+
 		loc.getWorld().strikeLightningEffect(pumpkin.getLocation());
 		pumpkin.setType(Material.JACK_O_LANTERN);
 

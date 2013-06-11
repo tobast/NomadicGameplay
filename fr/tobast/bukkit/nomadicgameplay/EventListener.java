@@ -44,7 +44,9 @@ import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.event.player.PlayerTeleportEvent.TeleportCause;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
@@ -142,6 +144,19 @@ public class EventListener implements Listener {
 			plugin.setLastPauseTime(event.getPlayer().getLocation().
 					getWorld().getFullTime());
 		}
+	}
+
+	@EventHandler(priority = EventPriority.MONITOR)
+	void onPlayerRespawnEvent(PlayerRespawnEvent event) {
+		// Add some survivalist stuff to the player's inventory
+		Player pl = event.getPlayer();
+		// Give apple, water, lighter, torch. Only that.
+		pl.getInventory().clear();
+		pl.getInventory().addItem(
+				new ItemStack(Material.APPLE, 1),
+				new ItemStack(Material.POTION, 1, (short)0),
+				new ItemStack(Material.FLINT_AND_STEEL, 1),
+				new ItemStack(Material.TORCH, 1));
 	}
 
 	void playerDiedEvent(Player pl) {

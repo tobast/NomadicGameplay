@@ -16,11 +16,8 @@ Features
 * Plant your camp where you want with a command
 * Your new camp shall always be at least n blocks away from the old one
   (configurable).
-* You're in hostile environment! Always move your camp at least each n days
-  (configurable). Else... Well, you'll see. If you're still alive to tell the others.
-* If one of you is not playing for some time, he/she'll be teleported right to
-  the new camp.
-* If one of you dies, he'll not be able to join again the server for a
-  predefined time.
+* You're in hostile environment! Keep moving. An "invasion" will be triggered after a certain time, according to a gaussian distribution around configured values.
+* If one of you is not playing for some time, he/she'll be teleported right to the new camp.
+* If one of you dies, he'll not be able to join again the server for a predefined time.
 * ...except if his/her mates accomplished a kind of shamanic rite to save his
   soul from the jaws of death!

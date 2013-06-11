@@ -140,6 +140,15 @@ public class CommandHandler {
 			plugin.setPlayerCanSpawnTime("dummy", plugin.realTime()*10l);
 			sender.sendMessage("Dummy killed.");
 			return true;
+		} else if(args[0].equals("resurrect") && args.length >= 2) {
+			if(plugin.playerCanSpawn(args[1])) {
+				sender.sendMessage("Player "+args[1]+" can already spawn!");
+			} else {
+				plugin.setPlayerCanSpawnTime(args[1], 0l);
+				sender.sendMessage(ChatColor.YELLOW+"Player "+args[1]+
+						" is now resurrected!");
+				return true;
+			}
 		}
 
 		return false;
